@@ -1,0 +1,9 @@
+node_modules/
+server.pid
+*.log
+*.zip
+*.png
+.DS_Store
+.tmp-*
+.chrome-*
+.test-server.*

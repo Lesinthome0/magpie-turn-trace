@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Magpie 每轮追踪</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="title-line">
+          <h1>每轮追踪</h1>
+          <span class="version-pill">LOCAL</span>
+        </div>
+        <p class="subtitle">按会话、轮次和请求查看 Token、缓存、上下文、费用与工具活动。</p>
+      </div>
+      <div class="top-actions">
+        <span id="last-updated" class="updated">等待读取</span>
+        <div class="refresh-control">
+          <button id="refresh-cycle" class="ghost refresh-cycle" type="button" aria-haspopup="listbox" aria-expanded="false">5 秒</button>
+          <div id="refresh-menu" class="refresh-menu" role="listbox" hidden>
+            <span class="refresh-menu-title">自动刷新</span>
+            <button type="button" data-refresh="0">关闭</button>
+            <button type="button" data-refresh="5" aria-selected="true">5 秒</button>
+            <button type="button" data-refresh="10">10 秒</button>
+            <button type="button" data-refresh="30">30 秒</button>
+            <button type="button" data-refresh="60">1 分钟</button>
+          </div>
+        </div>
+        <div id="view-switch" class="seg view-switch" role="tablist" aria-label="视图">
+          <button type="button" data-view="list" aria-selected="true">列表</button>
+          <button type="button" data-view="map" aria-selected="false">地图</button>
+          <button type="button" data-view="grid" aria-selected="false">方格</button>
+        </div>
+        <button id="refresh" class="primary" type="button">刷新</button>
+      </div>
+    </header>
+
+    <section class="range-bar" aria-label="时间范围">
+      <div id="period-switch" class="seg period-switch" role="tablist">
+        <button type="button" data-period="today" aria-selected="true">今天</button>
+        <button type="button" data-period="7d" aria-selected="false">7 天</button>
+        <button type="button" data-period="30d" aria-selected="false">30 天</button>
+        <button type="button" data-period="all" aria-selected="false">全部</button>
+        <button type="button" data-period="custom" aria-selected="false">自定义</button>
+      </div>
+      <div id="custom-range" class="custom-range" hidden>
+        <input id="range-from" type="date" aria-label="开始日期">
+        <span>→</span>
+        <input id="range-to" type="date" aria-label="结束日期">
+        <button id="range-apply" class="secondary" type="button">应用</button>
+      </div>
+    </section>
+
+    <section class="summary-grid" aria-label="用量汇总">
+      <article class="metric metric-token">
+        <div class="metric-head"><span>Token 合计</span><span class="metric-tag">含缓存</span></div>
+        <strong id="metric-tokens">—</strong>
+        <div id="metric-tokens-exact" class="metric-exact">—</div>
+        <small id="metric-tokens-note">输入总量 + 输出，推理不重复相加</small>
+      </article>
+      <article class="metric">
+        <div class="metric-head"><span>请求数</span><span id="metric-period" class="metric-tag">今天</span></div>
+        <strong id="metric-calls">—</strong>
+        <small id="metric-errors">—</small>
+      </article>
+      <article class="metric metric-cache">
+        <div class="metric-head"><span>缓存命中</span><span class="metric-tag">读取 / 输入</span></div>
+        <strong id="metric-cache">—</strong>
+        <div class="mini-progress"><span id="cache-fill"></span></div>
+        <small id="metric-cache-detail">—</small>
+      </article>
+      <article class="metric metric-context">
+        <div class="metric-head"><span>上下文占用</span><span class="metric-tag">最近请求</span></div>
+        <strong id="metric-context">—</strong>
+        <div class="mini-progress"><span id="context-fill"></span></div>
+        <small id="metric-context-detail">—</small>
+      </article>
+      <article class="metric">
+        <div class="metric-head"><span>费用</span><span class="metric-tag">Magpie</span></div>
+        <strong id="metric-cost">—</strong>
+        <small id="metric-cost-note">按 Magpie 记录汇总</small>
+      </article>
+    </section>
+
+    <section class="insight-grid" aria-label="Token 构成与排行">
+      <article class="panel composition-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Token 构成</h2>
+            <p>系统提示词、工具定义、技能、文件、工具结果与会话内容的真实 Token 构成。</p>
+          </div>
+          <strong id="composition-total" class="panel-total">—</strong>
+          <span id="composition-source" class="panel-chip">Magpie prompt</span>
+        </div>
+        <div class="composition-layout">
+          <div id="composition-donut" class="donut-wrap" aria-label="Token 构成圆环"></div>
+          <div id="composition-legend" class="legend"></div>
+        </div>
+        <div id="composition-bar" class="composition-bar" aria-label="Token 构成条"></div>
+        <div id="composition-details" class="composition-details"></div>
+        <p class="panel-foot">数据来自 Magpie 网关读取的 prompt.parts；悬停可聚焦构成。</p>
+      </article>
+
+      <article class="panel ranking-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Token 排行</h2>
+            <p id="ranking-subtitle">按会话或轮次的 Token 占比排序。</p>
+          </div>
+          <div class="ranking-controls">
+            <div id="ranking-scope" class="seg ranking-scope" role="tablist" aria-label="排行范围">
+              <button type="button" data-scope="session" aria-selected="true">会话</button>
+              <button type="button" data-scope="turn" aria-selected="false">轮次</button>
+            </div>
+            <div id="ranking-metric" class="seg ranking-metric" role="tablist" aria-label="排行指标">
+              <button type="button" data-metric="total" aria-selected="true">合计</button>
+              <button type="button" data-metric="uncachedInput" aria-selected="false">输入</button>
+              <button type="button" data-metric="output" aria-selected="false">输出</button>
+              <button type="button" data-metric="cacheRead" aria-selected="false">缓存</button>
+            </div>
+          </div>
+        </div>
+        <div id="ranking-list" class="ranking-list"></div>
+      </article>
+    </section>
+
+    <section class="results-head">
+      <div>
+        <h2>会话 / 轮次明细</h2>
+        <p id="results-meta">正在读取 Magpie…</p>
+      </div>
+      <div class="results-actions">
+        <button id="expand-all" class="ghost" type="button">展开全部</button>
+        <button id="collapse-all" class="ghost" type="button">收起全部</button>
+        <button id="load-more" class="secondary" type="button" hidden>加载更早请求</button>
+      </div>
+    </section>
+
+    <div id="error" class="error" hidden></div>
+    <div id="content" class="content" aria-live="polite"></div>
+    <div id="chart-tooltip" class="chart-tooltip" role="tooltip" hidden></div>
+    <footer>仅查询本机 Magpie 用量 API；上下文、工具和文件活动来自本机 Codex rollout。服务只绑定 127.0.0.1。</footer>
+  </div>
+</body>
+</html>

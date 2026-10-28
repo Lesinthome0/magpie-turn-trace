@@ -1,0 +1,11 @@
+:root { color-scheme: light dark; }
+body { margin: 0; padding: 20px; color: var(--magpie-fg, CanvasText); background: var(--magpie-bg, Canvas); font: 500 14px/1.55 var(--magpie-font, "Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", sans-serif); }
+main { max-width: 720px; margin: 0 auto; }
+.eyebrow { opacity: .65; font-size: 11px; letter-spacing: .12em; }
+h1 { font-size: 23px; margin: 8px 0; }
+p { margin: 10px 0; }
+.notice { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid var(--magpie-border, #8885); border-radius: 10px; margin: 18px 0; }
+button { border: 0; border-radius: 8px; padding: 10px 14px; font: inherit; font-weight: 650; background: var(--magpie-accent, #477cf5); color: white; cursor: pointer; }
+button:hover { filter: brightness(1.08); }
+code { overflow-wrap: anywhere; }
+.small { opacity: .7; font-size: 12px; margin-top: 18px; }

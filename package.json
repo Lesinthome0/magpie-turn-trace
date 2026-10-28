@@ -1,0 +1,22 @@
+{
+  "name": "magpie-turn-trace",
+  "version": "0.5.1",
+  "private": false,
+  "keywords": ["magpie-plugin", "magpie", "codex", "token-usage"],
+  "description": "A Magpie-themed local dashboard for session, turn, token, cache, context, cost, tool and file tracing.",
+  "license": "MIT",
+  "files": ["package.json", "page/**", "dashboard/**", "server.mjs", "start.bat", "start-background.ps1", "stop-background.ps1", "install-autostart.ps1", "uninstall-autostart.ps1", "README.md", "CHANGELOG.md", "LICENSE"],
+  "magpie": {
+    "page": {
+      "title": "Turn Trace",
+      "titles": {
+        "zh": "每轮追踪",
+        "zh-TW": "每輪追蹤",
+        "ja": "ターン追跡"
+      },
+      "file": "page/index.html",
+      "icon": "page/icon.svg"
+    },
+    "permissions": []
+  }
+}
